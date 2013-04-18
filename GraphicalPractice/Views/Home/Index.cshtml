@@ -1,0 +1,40 @@
+﻿@{
+    ViewBag.Title = "Home Page";
+}
+@section featured {
+    <section class="featured">
+        <div class="content-wrapper">
+            <hgroup class="title">
+                <h1>Graphical Practice</h1>
+                <h2>@ViewBag.Message</h2>
+            </hgroup>
+            <p>
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque sem nulla, ultrices ac vestibulum quis, feugiat eget nibh. Mauris pellentesque pellentesque felis, nec rutrum massa iaculis ac. Duis viverra dignissim lacus, eu mollis nulla porta vehicula. 
+            </p>
+        </div>
+    </section>
+}
+<h3>D3 Examples</h3>
+<ol class="round">
+    <li class="one">
+        @Html.ActionLink("Simple examples", "Index", "Simple")
+    </li>
+    <li class="one">
+        @Html.ActionLink("Enter() and Exit()", "Index", "EnterExit")
+    </li>
+    <li class="one">
+        @Html.ActionLink("Three Little Circles", "Index", "Circles")
+    </li>
+    <li class="one">
+        @Html.ActionLink("First Graph (Object constancy)", "Index", "FirstGraph")
+    </li>
+    <li class="one">
+        @Html.ActionLink("Simple Bar Chart", "Index", "SimpleBarChart")
+    </li>
+    <li class="one">
+        @Html.ActionLink("Histogram", "Index", "Histogram")
+    </li>
+     <li class="one">
+        @Html.ActionLink("TCharts Prototype", "Index", "TCharts")
+    </li>
+</ol>

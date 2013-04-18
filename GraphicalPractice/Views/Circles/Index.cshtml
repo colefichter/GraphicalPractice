@@ -1,0 +1,62 @@
+﻿@{
+    ViewBag.Title = "Three Little Circles";
+}
+@section featured {
+    <section class="featured">
+        <div class="content-wrapper">
+            <hgroup class="title">
+                <h1>Graphical Practice</h1>
+                <h2>@ViewBag.Message</h2>
+            </hgroup>
+        </div>
+    </section>
+}
+<style>
+    svg {
+        margin: 10px;
+        border: solid 1px #7AC0DA;
+    }
+</style>
+<h2>Three Little Circles</h2>
+<script type="text/javascript">
+    function randX() {
+        return 20 + 650 * Math.random();
+    };
+    function randY() {
+        return 20 + 300 * Math.random();
+    };
+    function randomLocation() {
+        d3.selectAll("#svg circle")
+            .transition()
+            .attr("cy", randY)
+            .attr("cx", randX)
+    };
+    function newCircle() {
+        d3.selectAll("#svg circle")
+                .data([40, 80, 150, 230, 420])
+            .enter().append("circle")
+                .attr("r", 12)
+                .attr("cy", randY)
+                .attr("cx", randX);
+    };
+    function databindRadius() {        
+        d3.selectAll("#svg circle")
+            .transition()
+            .attr("r", Math.sqrt); //Computes sqrt(databound value) without an anon function
+    };
+    function resetRadius() {
+        d3.selectAll("#svg circle")
+            .transition()
+            .attr("r", 12);
+    };
+</script>
+<fieldset>    
+    <a href="#" onclick="newCircle();">Add circles</a> | 
+    <a href="#" onclick="randomLocation();">Random (x,y)</a> | 
+    <a href="#" onclick="databindRadius();">Databind radius</a> | 
+    <a href="#" onclick="resetRadius();">Reset radius</a>
+</fieldset>
+<svg id="svg" width="700px" height="350px">
+    <circle cx="118.09953443706036" cy="45" r="12"></circle>
+</svg>
+

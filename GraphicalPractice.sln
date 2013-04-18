@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GraphicalPractice", "GraphicalPractice\GraphicalPractice.csproj", "{6A8DE7C2-F566-442C-9CCD-F30D4AC5C547}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GraphicalPractice.Tests", "GraphicalPractice.Tests\GraphicalPractice.Tests.csproj", "{CC1A3988-68B0-442A-98F2-293EC02F7FC3}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6A8DE7C2-F566-442C-9CCD-F30D4AC5C547}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6A8DE7C2-F566-442C-9CCD-F30D4AC5C547}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6A8DE7C2-F566-442C-9CCD-F30D4AC5C547}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6A8DE7C2-F566-442C-9CCD-F30D4AC5C547}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CC1A3988-68B0-442A-98F2-293EC02F7FC3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CC1A3988-68B0-442A-98F2-293EC02F7FC3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CC1A3988-68B0-442A-98F2-293EC02F7FC3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CC1A3988-68B0-442A-98F2-293EC02F7FC3}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

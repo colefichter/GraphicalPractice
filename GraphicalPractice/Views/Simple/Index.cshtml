@@ -1,0 +1,65 @@
+﻿@{
+    ViewBag.Title = "Index";
+}
+@section featured {
+    <section class="featured">
+        <div class="content-wrapper">
+            <hgroup class="title">
+                <h1>Graphical Practice</h1>
+                <h2>@ViewBag.Message</h2>
+            </hgroup>
+        </div>
+    </section>
+}
+<h2>Simple</h2>
+<script type="text/javascript">
+    var fontSizes = [4, 8, 15, 16, 23, 42];
+    function randomParagraphColors() {
+        d3.selectAll("p").style("color", function () {
+            return "hsl(" + Math.random() * 360 + ", 100%, 50%)";
+        });
+    };
+    function fadeRandomParagraphColors() {
+        d3.selectAll("p").transition().style("color", function () {
+            return "hsl(" + Math.random() * 360 + ", 100%, 50%)";
+        });
+    };
+    function alternatingParagraphColors() {
+        d3.selectAll("p").style("color", function (d, i) {
+            return i % 2 ? "#FF0000" : "#00FF00";
+        });
+    };
+    function paragraphFontSizes() {
+        d3.selectAll("p").data(fontSizes).transition().style("font-size", function (d) {
+            return d + "px";
+        });
+    };
+</script>
+<fieldset>
+    <a href="#" onclick="d3.selectAll('p').style('color', 'red');">Red paragraphs</a>
+    <a href="#" onclick="d3.selectAll('p').style('color', 'black');">Black paragraphs</a>
+    <a href="#" onclick="randomParagraphColors();">Random paragraphs</a>
+    <a href="#" onclick="fadeRandomParagraphColors();">Transition Random paragraphs</a>
+    <a href="#" onclick="alternatingParagraphColors();">Alternating paragraphs</a>
+    <br />
+    <a href="#" onclick="paragraphFontSizes();">Font sizes</a>
+    <a href="#" onclick="d3.selectAll('p').transition().style('font-size', '11.5px');">Reset font sizes</a>
+    <br />
+    <a href="#" onclick="d3.select('body').style('background-color', 'black');">Black background</a>
+    <a href="#" onclick="d3.select('body').style('background-color', '');">Original background</a>    
+</fieldset>
+<p>
+    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque tempus hendrerit ipsum volutpat interdum. Integer faucibus, est ac porta convallis, est est mattis dui, faucibus tempus sapien felis a augue. Proin euismod nibh congue elit consequat vel dapibus lorem convallis. Morbi et ante odio. Proin vel odio felis. In non tortor elit, quis condimentum leo. Donec lorem enim, faucibus in consectetur a, porttitor eget ante.
+</p>
+<p>
+    Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Cras placerat risus non mauris fringilla eu rutrum arcu iaculis. Quisque sit amet dignissim lectus. Aenean ullamcorper, ligula id eleifend mollis, urna nulla porta mauris, varius viverra diam mi at lacus. Sed rutrum pretium est vel tincidunt. Nunc iaculis eros vitae tellus iaculis porttitor. Donec lacinia risus ultricies nibh imperdiet quis pharetra massa semper. Cras lorem quam, tincidunt vitae ultricies non, venenatis eget tortor.
+</p>
+<p>
+    Pellentesque mauris velit, lacinia id sagittis sit amet, tincidunt sed nunc. Nunc hendrerit magna vestibulum lacus scelerisque lacinia. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Sed adipiscing consequat lacus, sit amet consectetur nisl convallis id. Pellentesque euismod lobortis quam, id dapibus arcu consectetur a. Nam vulputate molestie tortor, non venenatis quam dictum eget. Nulla pretium porttitor libero ac dignissim. Etiam turpis lorem, adipiscing sit amet blandit a, tempus id lectus. Sed pulvinar, nisl id commodo pulvinar, ipsum nunc pharetra tortor, vel laoreet magna nunc ut tellus. Aliquam mattis quam at lorem vulputate non facilisis nisi scelerisque. Sed malesuada iaculis facilisis. Aenean vitae odio sed leo dapibus molestie ut non neque. Nam vitae mauris nulla, at luctus arcu. In vulputate enim luctus quam sollicitudin nec luctus lorem cursus. Phasellus non magna sit amet turpis dictum egestas non suscipit lectus. Vestibulum eget lorem in est tincidunt fermentum.
+</p>
+<p>
+    Nulla ac eros a tortor elementum suscipit. Nullam nisl massa, lobortis ac scelerisque in, mattis in mauris. Nunc suscipit volutpat lacinia. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Quisque laoreet, est eu scelerisque bibendum, mi quam volutpat tellus, sed euismod libero leo vitae mauris. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Duis vel felis tellus. Donec pellentesque odio tristique neque faucibus porta. Duis pellentesque sagittis quam, at congue nibh egestas non.
+</p>
+<p>
+    Morbi pulvinar placerat rhoncus. Sed commodo mauris ut mi egestas in feugiat eros tincidunt. Nulla ultrices fringilla dolor, quis consequat augue rhoncus sed. Donec egestas mi in ipsum dictum sagittis malesuada massa facilisis. Cras tristique quam et purus posuere lacinia. Nulla non risus mollis est scelerisque pretium. Cras pretium nibh id turpis aliquet id porttitor velit sagittis. Praesent congue ultricies malesuada. Aliquam erat volutpat. Curabitur elementum odio in arcu tempus sit amet hendrerit sem euismod. Curabitur ut aliquam turpis.
+</p>

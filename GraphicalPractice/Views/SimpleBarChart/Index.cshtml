@@ -1,0 +1,48 @@
+﻿@{
+    ViewBag.Title = "Simple Bar Chart";
+}
+@section featured {
+    <section class="featured">
+        <div class="content-wrapper">
+            <hgroup class="title">
+                <h1>Graphical Practice</h1>
+                <h2>@ViewBag.Message</h2>
+            </hgroup>
+        </div>
+    </section>
+}
+<style>
+    #chart {
+        width: 500px;
+        height: 100px;
+    }
+    #chart div {
+        background-color: steelblue;
+        font: 10px sans-serif;
+        text-align: right;
+        padding: 3px;
+        margin: 1px;
+        color: white;
+    }
+</style>
+<h2>Simple Bar Chart</h2>
+<div id="chart" class="chart" />
+<script type="text/javascript">
+    var data = [4, 8, 15, 16, 23, 42];
+    //var chart = d3.select("section#content").append("div")
+    //    .attr("class", "chart");
+    var chart = d3.select("#chart");
+
+    var xScale = d3.scale.linear()
+        .domain([0, d3.max(data)])
+        .range(["0px", chart.style("width")]);
+    var yScale = d3.scale.ordinal()
+        .domain(data).rangeBands();
+
+    chart.selectAll("div")
+        .data(data)
+    .enter().append("div")
+        .style("width", xScale)
+        .text(function (d) { return d; });
+</script>
+

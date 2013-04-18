@@ -1,0 +1,36 @@
+﻿@{
+    ViewBag.Title = "Index";
+}
+@section featured {
+    <section class="featured">
+        <div class="content-wrapper">
+            <hgroup class="title">
+                <h1>Graphical Practice</h1>
+                <h2>@ViewBag.Message</h2>
+            </hgroup>
+        </div>
+    </section>
+}
+<h2>Enter() and Exit()</h2>
+<script type="text/javascript">
+    function addParagraphs() {
+        var p = d3.select("#content").selectAll("p")
+            .data([4, 8, 15, 16, 23, 42])
+            .text(function (d) { return "I’m number " + d + "!"; });
+
+        p.enter().append("p")
+            .text(function (d) { return "I’m number " + d + "!"; });
+    };
+
+    function removeParagraphs() {
+        var p = d3.select('#content').selectAll("p")
+            .data([4, 8])
+            .text(function (d) { return "Updated " + d; });
+
+        p.exit().remove();
+    };
+</script>
+<fieldset>
+     <a href="#" onclick="addParagraphs();">Add paragraphs</a>
+    <a href="#" onclick="removeParagraphs();">Remove paragraphs</a>
+</fieldset>
