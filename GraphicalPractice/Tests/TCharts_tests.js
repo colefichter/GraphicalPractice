@@ -14,6 +14,19 @@ test("Default config", function () {
     ok(q.datum.text.dy == 12, "datum.text.dy");
     ok(q.datum.text.fontSize == "75%", "datum.text.fontSize");
 
+    //ok(q.format == d3.format(".1f"), "format"); //How to test this? .format is actually a function
+    ok(q.height == 300, "height");
+    ok(q._labels instanceof Array , "_labels");
+    ok(q._labels.length == 0, "_labels.length");
+    ok(q.margin.top == 15, "margin.top");
+    ok(q.margin.left == 15, "margin.left");
+    ok(q.margin.bottom == 15, "margin.bottom");
+    ok(q.margin.right == 15, "margin.right");
+    ok(q.smallMultipleHeight == 25, "smallMultipleHeight");
+    ok(q.title == "My Chart", "title");
+    ok(q.type == "quartile", "type");
+    ok(q.width == 500, "width");
+
     //TODO: finish checking the other deftault config settings...
 
     /*
