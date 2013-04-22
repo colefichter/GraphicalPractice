@@ -128,7 +128,7 @@
     */
     this._getScaledQuantileCallback = function (p, scale) {
         return function (d) {
-            console.log("Quantile: ", p, d);
+            //console.log("Quantile: ", p, d);
             var sorted = d.sort(function(a,b){return a-b}); //Jesus... JS can't sort integers automatically!  WTF?
             var nTile = d3.quantile(sorted, p);
             console.log("nTile", nTile);
