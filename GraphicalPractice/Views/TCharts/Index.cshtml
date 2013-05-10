@@ -20,11 +20,28 @@
     g.label {
         font-weight: normal;
     }
+
+    container {
+        border: solid 1px lightgray;
+    }
+
+    /* tell the SVG path to be a thin blue line without any area fill */
+			/*path {
+				stroke: steelblue;
+				stroke-width: 1;
+				fill: none;
+			}*/
 </style>
 <h2>TCharts Prototype</h2>
+<p>
+    Run the JavaScript <a href="/tests.html" target="_blank">test suite</a>.
+</p>
 <div>
     <h3>Fuel Economy (Quartile plot)</h3>
     <div id='fuel_quartile'></div>
+
+    <h3>Blood Tests (Sparkline)</h3>
+    <div id="sparkline"></div>
 </div>
 @section scripts {
     <script type="text/javascript" src="Scripts/TCharts.js"></script>
@@ -34,8 +51,9 @@
             var mpg2 = data.map(function (x) { return parseFloat(x.mpg) * (0.4 + Math.random()); });
             var mpg3 = data.map(function (x) { return parseFloat(x.mpg) * (1 + Math.random()); });
             var chartData = [mpg, mpg2, mpg3];
-            var labels = ["Subaru", "Toyota", "Honda"];
+            var labels = ["Subaru", "Toyota Motor Company", "Honda"];
 
+            //Create a quartile plot
             var c = (new QuartilePlot({
                 containerSelector: "#fuel_quartile",
                 autoHeight: true,
@@ -48,6 +66,37 @@
                     fill: "black"
                 }
             })).data(chartData).labels(labels).render();
+
+
+            var fakeLabels = ["Glucose", "Sodium", "Potassium"];
+            var fakeValues = [3, 6, 2, 7, 5, 2, 1, 3, 8, 9, 2, 5, 9, 3, 6, 3, 6, 2, 7, 5, 2, 1, 3, 8, 9, 2, 5, 9, 2, 7, 5, 2, 1, 3, 8, 9, 2, 5, 9, 3, 6, 2, 7, 5, 2, 1, 3, 8, 9, 2, 5, 9];
+            var sparklineData = [
+                fakeValues,
+                fakeValues.map(function (d,i) { return d * (0.4 + Math.random()); }),
+                fakeValues.map(function (d,i) { return d * (1.4 + Math.random()); })
+            ];
+            
+            //test for uneven array lengths...
+            sparklineData[2].pop();
+            sparklineData[2].pop();
+            sparklineData[2].pop();
+            sparklineData[2].pop();
+            sparklineData[2].pop();
+
+            //Create a sparkline
+            var s = (new Sparkline({
+                containerSelector: "#sparkline",
+                datum: {
+                    stroke: "steelblue",
+                    fill: "#E1B770"
+                },
+                yAxis: {
+                    text: {
+                        fontSize: "110%",
+                        color: "#E1B770"
+                    }
+                }
+            })).data(sparklineData).labels(fakeLabels).render();
         });
     </script>
 }
