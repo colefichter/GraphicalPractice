@@ -13,13 +13,13 @@
 }
 <style>
     svg {
-        /*border: solid 1px lightgray;*/
+        border: solid 1px lightgray;
         /*margin: 10px;*/
     }
     /*Override site style*/
     g.label {
         font-weight: normal;
-    }
+    }   
 </style>
 <h2>TCharts Prototype</h2>
 <p>
@@ -27,10 +27,15 @@
 </p>
 <div>
     <h3>Fuel Economy (Quartile plot)</h3>
-    <div id='fuel_quartile'></div>
+    <div id="fuel_quartile"></div>
+    <br clear="all" />
 
     <h3>Blood Tests (Sparkline)</h3>
     <div id="sparkline"></div>
+    <p>TODO: plot most recent glucose reading with color matching dot; take color off labels?</p>
+
+
+    <br clear="all" />
 </div>
 @section scripts {
     <script type="text/javascript" src="Scripts/TCharts.js"></script>
@@ -47,9 +52,12 @@
                 containerSelector: "#fuel_quartile",
                 autoHeight: true,
                 width: 500,
-                margin: {
-                    left: 15
-                },
+                /*margin: {
+                    top: 10,
+                    right: 10,
+                    bottom: 10,
+                    left: 10
+                },*/
                 datum: {
                     stroke: "steelblue",
                     fill: "steelblue"
@@ -60,6 +68,7 @@
                     }
                 }
             })).data(chartData).labels(labels).render();
+
 
 
             var fakeLabels = ["Glucose", "Sodium", "Potassium"];
@@ -79,16 +88,21 @@
 
             //Create a sparkline
             var s = (new Sparkline({
-                containerSelector: "#sparkline",
+                autoHeight: true,
+                margin: { 
+                    top: 0,
+                    right: 0,
+                    bottom: 0,
+                    left: 0
+                },
+                containerSelector: "#sparkline",                
                 datum: {
+                    radius: 2,
                     stroke: "steelblue",
                     fill: "#E1B770"
                 },
                 yAxis: {
-                    text: {
-                        fontSize: "110%",
-                        color: "#E1B770"
-                    }
+                    labelMargin: 10,                    
                 }
             })).data(sparklineData).labels(fakeLabels).render();
         });
