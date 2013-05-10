@@ -65,7 +65,7 @@ function TChartBase() {
         labelMargin: 10,
         text: {
             anchor: "end",
-            fontSize: "75%",
+            fontSize: "100%",
             color: "#000000"
         }
     };

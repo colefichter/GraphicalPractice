@@ -13,24 +13,13 @@
 }
 <style>
     svg {
-        border: solid 1px lightgray;
+        /*border: solid 1px lightgray;*/
         /*margin: 10px;*/
     }
     /*Override site style*/
     g.label {
         font-weight: normal;
     }
-
-    container {
-        border: solid 1px lightgray;
-    }
-
-    /* tell the SVG path to be a thin blue line without any area fill */
-			/*path {
-				stroke: steelblue;
-				stroke-width: 1;
-				fill: none;
-			}*/
 </style>
 <h2>TCharts Prototype</h2>
 <p>
@@ -62,8 +51,13 @@
                     left: 15
                 },
                 datum: {
-                    stroke: "red",
-                    fill: "black"
+                    stroke: "steelblue",
+                    fill: "steelblue"
+                },
+                xAxis: {
+                    grid: {
+                        stroke: '#E2E2E2'
+                    }
                 }
             })).data(chartData).labels(labels).render();
 
