@@ -7,6 +7,23 @@ if (typeof Object.create !== 'function') {
     };
 }
 
+function Box(left, right) {
+    this.left = left ? left : 0,
+    this.right = right ? right : 0,
+    this.parent = null;
+
+    this.width = function () { return this.right - this.left; };
+    
+    //this.createChild = function () {
+    //    var b = new Box();
+    //    b.parent = this;
+    //    b.left = 0;
+    //    b.right = this.width;
+    //    return b;
+    //};
+};
+
+
 /* Base class for features common to all charts. */
 function TChartBase() {
     //Enums
@@ -129,21 +146,24 @@ function TChartBase() {
         if (!text || text.length === 0) return { height: 0, width: 0 };
 
         var container = d3.select('body').append('svg').attr('class', classname);
-        container.append('text').attr({ x: -1000, y: -1000 }).text(text);
+        container.append('text')
+            .attr({ x: -1000, y: -1000 })
+            .attr("font-size", this.yAxis.text.fontSize)
+            .text(text);
 
         var bbox = container.node().getBBox();
         container.remove();
 
-        return { height: bbox.height, width: bbox.width };
+        return { height: bbox.height, width: bbox.width - 0 };
     };
 
-    this._maxLabelWidth = function () {
+    this._maxLabelWidth = function (labels) {
         var self = this;
-        return Math.ceil(d3.max(this._labels.map(function (value) { return self._measure(value).width; })));
+        return Math.ceil(d3.max(labels.map(function (value) { return self._measure(value).width; })));
     };
 
-    this._renderLabels = function (container, width, translation) {
-        var labels = container.selectAll("g.label").data(this._labels);
+    this._renderLabels = function (container, labelData, width, translation) {
+        var labels = container.selectAll("g.label").data(labelData);
         labels.enter().append("g")
             .attr("class", "label")
             .attr("width", width)            
@@ -154,6 +174,8 @@ function TChartBase() {
             .attr("fill", this.yAxis.text.color)
             .attr("font-size", this.yAxis.text.fontSize)
             .text(function (d) { return d; });
+
+        return labels;
     };
 };
 
@@ -195,7 +217,7 @@ function QuartilePlot(options) {
 
         var box = this._getBoundingBox();
         var plotHeight = box.top + this.smallMultipleHeight * (data.length - 1);
-        var labelWidth = this._maxLabelWidth();
+        var labelWidth = this._maxLabelWidth(this._labels);
 
         //TODO: orientation... ?
 
@@ -206,7 +228,12 @@ function QuartilePlot(options) {
         var left = wrapper.append("svg:g")
             .attr("class", "left");
 
-        this._renderLabels(left, labelWidth, function (d, i) { return "translate(" + labelWidth + ", " + (box.top + (i) * self.smallMultipleHeight) + ")"; });
+        var labelLineHeight = Math.round(this._measure("Not a real label!").height / 3);
+        this._renderLabels(left,
+            this._labels,
+            labelWidth,
+            function (d, i) { return "translate(" + labelWidth + ", " + ((i +1) * self.smallMultipleHeight) + ")"; }
+        );
 
         //Setup the right-hand-side box (with the quartiles)
         var right = wrapper.append("svg:g")
@@ -226,50 +253,50 @@ function QuartilePlot(options) {
         var containers = right.selectAll("g").data(data);
 
         containers.enter().append("g")
-            .attr("transform", function (d, i) { return "translate(0, " + (box.top + (i) * self.smallMultipleHeight) + ")"; });
+            .attr("transform", function (d, i) { return "translate(0, " + (/*box.top + */(i +1) * self.smallMultipleHeight) + ")"; });
 
         containers.append("circle") //Dots represent the median value of each quartile plot
             .attr("r", this.datum.radius)
             .attr("stroke", "none")
             .attr("fill", this.datum.fill)
             .attr("transform", function (d, i) {
-                return "translate(" + scale(d3.median(d)) + ",0)";
+                return "translate(" + scale(d3.median(d)) + "," + -labelLineHeight +")";
             });
         containers.append("text") //Label each dot
             .text(function (d) { return self.format(d3.median(d)); })
-            .attr("transform", function (d) { return "translate(" + scale(d3.median(d)) + ",0)"; })
+            .attr("transform", function (d) { return "translate(" + scale(d3.median(d)) + "," + -labelLineHeight + ")"; })
             .attr("dy", this.datum.text.dy)
             .attr("text-anchor", this.datum.text.anchor)
             .attr("font-size", this.datum.text.fontSize);
 
         containers.insert("line") //Draw line representing first quartile
             .attr("x1", function (d, i) { return scale(d3.min(d)); })
-            .attr("y1", 0)
+            .attr("y1", -labelLineHeight)
             .attr("x2", this._getScaledQuantileCallback(0.25, scale))
-            .attr("y2", 0)
+            .attr("y2", -labelLineHeight)
             .style("stroke", this.datum.stroke)
             .attr("stroke-width", this.datum.strokeWidth)
             .attr('fill', this.datum.fill);
 
         containers.insert("line") //Draw line representing fourth quartile
             .attr("x1", this._getScaledQuantileCallback(0.75, scale))
-            .attr("y1", 0)
+            .attr("y1", -labelLineHeight)
             .attr("x2", function (d, i) { return scale(d3.max(d)); })
-            .attr("y2", 0)
+            .attr("y2", -labelLineHeight)
             .style("stroke", this.datum.stroke)
             .attr("stroke-width", this.datum.strokeWidth)
             .attr('fill', this.datum.fill);
 
         /* xAxis*/
-        var axisOffset = 10 + box.top + data.length * (self.smallMultipleHeight - 1);
+        var axisOffset = 10 /*+ box.top*/ + data.length * (self.smallMultipleHeight);
         var rules = right.selectAll("g.rule").data(scale.ticks(this.xAxis.tick))
           .enter().append("svg:g")
             .attr("class", "rule")
             .attr("transform", function (d) { return "translate(" + (scale(d)) + ", 0)"; });
 
         rules.append("svg:line") //axis lines
-            .attr("y1", box.top)
-            .attr("y2", axisOffset)
+            .attr("y1", /*box.top*/0)
+            .attr("y2", axisOffset + this.smallMultipleHeight)
             .attr("x1", 0)
             .attr("x2", 0)
             .attr("stroke", this.xAxis.grid.stroke)
@@ -277,14 +304,14 @@ function QuartilePlot(options) {
             .attr("stroke-opacity", this.xAxis.grid.opacity);
 
         rules.append("svg:text") //axis text
-            .attr("y", axisOffset)
+            .attr("y", axisOffset + this.smallMultipleHeight)
             .attr("x", 0)
             .attr("text-anchor", this.xAxis.text.anchor)
             .text(scale.tickFormat(this.xAxis.tick));
         //end of xAxis
 
         if (this.autoHeight) {
-            this.svg.attr("height", axisOffset + this.smallMultipleHeight + this.margin.bottom);
+            this.svg.attr("height", axisOffset + this.smallMultipleHeight + this.margin.bottom + this.margin.top);
         };
     };
 
@@ -322,38 +349,79 @@ function Sparkline(options) {
         var globalMin = this._global(data, d3.min);
         var globalMax = this._global(data, d3.max);
 
-        var box = this._getBoundingBox();
-        var labelWidth = this._maxLabelWidth();
+        //var box = this._getBoundingBox();
+        var box = new Box(this.margin.left, this.width - this.margin.right);
+        box.top = this.margin.top;
+        box.bottom = this.height - this.margin.bottom;
 
-        var wrapper = this.svg.append("svg:g")
+        var labelWidth = this._maxLabelWidth(this._labels);
+        
+        //Create latest datapoint labels on right side...
+        var dataLabels = data.map(function (d) { return self.format(d[d.length - 1], 2); });
+        var dataLabelWidth = this._maxLabelWidth(dataLabels);
+        
+        console.log("dataLabelWidth", dataLabelWidth);
+
+        //This is a bit strange... but since we have the wrapper, which is already translated +15, left starts at zero.
+        //If the SVG width is 500, then we have
+        var leftBox = new Box(0, labelWidth);
+        var rightBox = new Box(box.right - dataLabelWidth, box.right);        
+        var centerBox = new Box(leftBox.right + this.yAxis.labelMargin, rightBox.left - this.yAxis.labelMargin);
+        
+        console.log("box", box);
+        console.log("leftBox", leftBox);
+        console.log("centerBox", centerBox);
+        console.log("rightBox", rightBox);
+        
+        var wrapper = this.svg.append("g")
             .attr("class", "wrapper")
             .attr("transform", "translate(" + box.left + ", " + box.top + ")");
 
         var left = wrapper.append("svg:g")
             .attr("class", "left");
+            //.attr("transform", "translate(0,0)");
 
-        this._renderLabels(left, labelWidth, function (d, i) { return "translate(" + labelWidth + ", " + (box.top + (i) * self.smallMultipleHeight) + ")"; });
-
-        //Setup the right-hand-side box (with the quartiles)
+        //Text labels on the left side
+        this._renderLabels(left, this._labels, labelWidth, function (d, i) { return "translate(" + leftBox.right + ", " + (/*box.top +*/ (i +1) * self.smallMultipleHeight) + ")"; });
+        
+        //Setup SVG containers according to box model above
+        var center = wrapper.append("svg:g")
+            .attr("class", "center")            
+            .attr("transform", "translate(" + centerBox.left + ", 0)");
         var right = wrapper.append("svg:g")
             .attr("class", "right")
-            //Shift the left edge over to the right of the labels (plus a margin)
-            .attr("transform", "translate(" + (labelWidth + this.yAxis.labelMargin) + ", 0)");
+            .attr("transform", "translate(" + rightBox.left + ", 0)");
+        
+        //Data labels on the right
+        //var dataLabelContainers = right.selectAll("g").data(dataLabels);
+        //dataLabelContainers.enter().append("g")
+        //    .attr("class", "container")
+        //    .attr("transform", function (d, i) { return "translate(0, " + (/*box.top + */(i) * self.smallMultipleHeight) + ")"; });
 
-        var containers = right.selectAll("g").data(data);
+        //dataLabelContainers.append("text")
+        right.selectAll("text").data(dataLabels)
+            .enter().append("text")            
+                .attr("x", -5)
+                .attr("fill", this.datum.fill)
+                .attr("y", function(d,i) { return (i + 1) * self.smallMultipleHeight; })
+                .text(function (d) { return d; });
+        
+        //Sparkline containers
+        var containers = center.selectAll("g").data(data);
         containers.enter().append("g")
             .attr("class", "container")
-            .attr("transform", function (d, i) { return "translate(0, " + (box.top + (i) * self.smallMultipleHeight) + ")"; });
+            .attr("transform", function (d, i) { return "translate(0, " + (/*box.top + */(i + 1) * self.smallMultipleHeight) + ")"; });
         
         //vertically center the sparkline...
         var halfHeight = Math.round(this.smallMultipleHeight / 2);        
         var y = d3.scale.linear().domain([globalMin, globalMax]).range([-halfHeight, halfHeight]);
         
-        //The scale range is from 0 (the left of of the RHS box) to the width (the right side) of the RHS box.
+        //The scale range is from 0 (the left of of the center box) to the width (the right side) of the center box.
         var maxSubarrayLength = this._global(data.map(function (d, i) { return d.length; }), d3.max);
         var x = this.xAxis.scale.type() //e.g. d3.scale.linear evaluated as a callback
             .domain([0, maxSubarrayLength])
-           .range([0, box.right - box.left - labelWidth - this.yAxis.labelMargin]);
+            //.range([0, box.right - box.left - labelWidth - this.yAxis.labelMargin]);
+            .range([0, centerBox.width()]);
 
         // create a line object that represents the SVN line we're creating
         var line = d3.svg.line()			
@@ -385,9 +453,9 @@ function Sparkline(options) {
                 .attr("transform", function (d, i) {                    
                     return "translate(" + x(d.length - 1) + ", " + y(d[d.length - 1]) + ")";
                 });
-
+        
         if (this.autoHeight) {
-            this.svg.attr("height", this.smallMultipleHeight * data.length + this.margin.top + this.margin.bottom);
+            this.svg.attr("height", this.smallMultipleHeight * (data.length + 1) + this.margin.top + this.margin.bottom);
         };
     };
 
