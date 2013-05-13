@@ -69,7 +69,7 @@
 
 
             var fakeLabels = ["Glucose", "Sodium", "Potassium"];
-            var fakeValues = [3, 6, 2, 7, 5, 2, 1, 3, 8, 9, 2, 5, 9, 3, 6, 3, 6, 2, 7, 5, 2, 1, 3, 8, 9, 2, 5, 9, 2, 7, 5, 2, 1, 3, 8, 9, 2, 5, 9, 3, 6, 2, 7, 5, 2, 1, 3, 8, 9, 2, 5, 9];
+            var fakeValues = [3, 6, 2, 7, 5, 2, 1, 3, 8, 9, 2, 5, 9, 3, 6, 3, 6, 2, 7, 5, 2, 1, 3, 8, 9, 2, 5, 9, 2, 7, 5, 2, 1, 3, 8, 9, 2, 5, 9, 3, 6, 2, 7, 5, 2, 1, 3, 8, 9, 2, 5, 9];            
             var sparklineData = [
                 fakeValues,
                 fakeValues.map(function (d,i) { return d * (0.4 + Math.random()); }),
@@ -83,6 +83,8 @@
             sparklineData[2].pop();
             sparklineData[2].pop();
 
+            console.log(sparklineData);
+
             //Create a sparkline
             var s = (new Sparkline({
                 autoHeight: true,
@@ -92,6 +94,7 @@
                     bottom: 0,
                     left: 0
                 },*/
+                margin: { right: 15 },
                 containerSelector: "#sparkline",                
                 datum: {
                     radius: 2,
@@ -99,8 +102,13 @@
                     fill: "#E1B770"
                 },
                 yAxis: {
-                    labelMargin: 10,                    
-                }
+                    labelMargin: 10
+                },
+                expectedRange: [
+                    [5, 10],
+                    [4, 9],
+                    [5, 9]
+                ]
             })).data(sparklineData).labels(fakeLabels).render();
         });
     </script>
