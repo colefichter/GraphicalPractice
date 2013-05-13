@@ -42,6 +42,8 @@ function TChartBase() {
         stroke: "#000000",
         strokeWidth: 1,
         fill: "#000000",
+        secondaryFill: "#B1DCFE",
+        secondaryOpacity: 0.3,
         text: {
             anchor: "middle",
             dy: 12,
@@ -219,7 +221,7 @@ function QuartilePlot(options) {
             .attr("class", "left");
 
         var labelLineHeight = Math.round(this._measure("Not a real label!").height / 3);
-        this._renderLabels(left,
+        var labels = this._renderLabels(left,
             this._labels,
             labelWidth,
             function (d, i) { return "translate(" + labelWidth + ", " + ((i + 1) * self.smallMultipleHeight) + ")"; }
@@ -312,12 +314,13 @@ function Sparkline(options) {
     $.extend(this, new TChartBase());
 
     //Override defaults here...
+    this.expectedRange = [];
 
     /* Apply options specified in constructor. First param, true, forces a deep copy!
        Deep copy allows us to easily override a subset of properties, eg:
            new TChart({ margin: { top: 50 } }) //does not affect other margin default values! */
     $.extend(true, this, options);
-
+    
     this._init = function () {
         this.svg = d3.select(this.containerSelector).append("svg")
             .attr("width", this.width /*+ margin.left + margin.right*/)
@@ -338,6 +341,7 @@ function Sparkline(options) {
         var self = this;
         var globalMin = this._global(data, d3.min);
         var globalMax = this._global(data, d3.max);
+        var halfHeight = this.smallMultipleHeight / 2;
 
         var box = new Box(this.margin.left, this.width - this.margin.right);
         box.top = this.margin.top;
@@ -348,59 +352,63 @@ function Sparkline(options) {
         //Create latest datapoint labels on right side...
         var dataLabels = data.map(function (d) { return self.format(d[d.length - 1], 2); });
         var dataLabelWidth = this._maxLabelWidth(dataLabels);
-
-        //console.log("dataLabelWidth", dataLabelWidth);
+        //The numbers all look right, but the rendered version looks too close to the right margin... fudge it a bit.
+        dataLabelWidth += 10;
 
         //This is a bit strange... but since we have the wrapper, which is already translated +15, left still starts at zero (even though it's +15, globally)
         var leftBox = new Box(0, labelWidth);
         var rightBox = new Box(box.right - dataLabelWidth, box.right);
         var centerBox = new Box(leftBox.right + this.yAxis.labelMargin, rightBox.left - this.yAxis.labelMargin);
-
-        //console.log("box", box);
-        //console.log("leftBox", leftBox);
-        //console.log("centerBox", centerBox);
-        //console.log("rightBox", rightBox);
-
+        
+        //Container to force margins
         var wrapper = this.svg.append("g")
             .attr("class", "wrapper")
             .attr("transform", "translate(" + box.left + ", " + box.top + ")");
-
+        
+        //Text labels on the left side
         var left = wrapper.append("svg:g")
             .attr("class", "left");
-
-        //Text labels on the left side
-        this._renderLabels(left, this._labels, labelWidth, function (d, i) { return "translate(" + leftBox.right + ", " + ((i + 1) * self.smallMultipleHeight) + ")"; });
-
+        var labelLineHeight = this._measure("Not a real label!", "").height;
+        var labels = this._renderLabels(left, this._labels, labelWidth,
+            function (d, i) { return "translate(" + leftBox.right + ", " + ((i) * (2 + self.smallMultipleHeight)) + ")"; }
+        );
+        labels.selectAll("text")
+            .attr("dy", labelLineHeight); //Hack to get the text vertically aligment to something like "middle".
+               
         //Setup SVG containers according to box model above
         var center = wrapper.append("svg:g")
             .attr("class", "center")
             .attr("transform", "translate(" + centerBox.left + ", 0)");
+
+        //Labels for final data point in each series on right hand side.
         var right = wrapper.append("svg:g")
             .attr("class", "right")
             .attr("transform", "translate(" + rightBox.left + ", 0)");
-
-        //Data labels on the right side     
-        right.selectAll("text").data(dataLabels)
-            .enter().append("text")
-                .attr("x", -5)
-                .attr("fill", this.datum.fill)
-                .attr("y", function (d, i) { return (i + 1) * self.smallMultipleHeight; })
-                .text(function (d) { return d; });
-
+        var dataLabels = this._renderLabels(right, dataLabels, 0, 
+            function (d, i) { return "translate(0, " + ((i) * (2 + self.smallMultipleHeight)) + ")"; }
+        );
+        dataLabels.selectAll("text")
+            .attr("text-anchor", "start")
+            .attr("fill", this.datum.fill)
+            .attr("dy", labelLineHeight); //Hack to get the text vertically aligment to something like "middle".
+        
         //Sparkline containers
         var containers = center.selectAll("g").data(data);
         containers.enter().append("g")
             .attr("class", "container")
-            .attr("transform", function (d, i) { return "translate(0, " + ((i + 1) * self.smallMultipleHeight) + ")"; });
+            //The extra 2 pixels is for padding between containers...
+            .attr("transform", function (d, i) { return "translate(0, " + ((i) * (2 + self.smallMultipleHeight)) + ")"; });
 
-        //vertically center the sparkline
-        var halfHeight = Math.round(this.smallMultipleHeight / 2);
-        var y = d3.scale.linear().domain([globalMin, globalMax]).range([-halfHeight, halfHeight]);
-
+        //vertically center the sparkline        
+        var y = d3.scale.linear()
+            .domain([globalMin, globalMax])
+            //.range([halfHeight, -halfHeight]); //Note inverted y-scale to work with wonky SVG coordinate plane!
+            .range([this.smallMultipleHeight, 0]);
+                
         //The scale range is from 0 (the left of of the center box) to the width (the right side) of the center box.
         var maxSubarrayLength = this._global(data.map(function (d, i) { return d.length; }), d3.max);
         var x = this.xAxis.scale.type() //e.g. d3.scale.linear evaluated as a callback
-            .domain([0, maxSubarrayLength])
+            .domain([0, maxSubarrayLength - 1])
             .range([0, centerBox.width()]);
 
         // create a line object that models the SVG line we're creating
@@ -408,7 +416,7 @@ function Sparkline(options) {
 			.x(function (d, i) { return x(i); })
 			.y(function (d) { return y(d); });
 
-        //Draw the lines
+        //Draw the sparklines
         containers.append("path")
             .attr("d", function (d) { return line(d); })
             .attr("stroke", this.datum.stroke)
@@ -416,17 +424,33 @@ function Sparkline(options) {
             .attr("fill", "none");
 
         //Highlight final points
-        //TODO: make this an option, so that we can highlight any point we like...(?)
-        containers.append("circle")
-                .attr("r", this.datum.radius)
-                .attr("stroke", "none")
-                .attr("fill", this.datum.fill)
-                .attr("transform", function (d, i) {
-                    return "translate(" + x(d.length - 1) + ", " + y(d[d.length - 1]) + ")";
-                });
+        containers.append("circle")                
+            .attr("r", this.datum.radius)
+            .attr("stroke", "none")
+            .attr("fill", this.datum.fill)
+            .attr("transform", function (d, i) {
+                return "translate(" + x(d.length - 1) + ", " + y(d[d.length - 1]) + ")";
+            });
+        
+        //Draw semi-opaque band indicating expected range of values.        
+        containers.append("rect")
+            .attr("opacity", this.datum.secondaryOpacity)
+            .attr("stroke", "none")
+            .attr("fill", this.datum.secondaryFill)
+            .attr("x", 0)
+            .attr("y", function (d, i) {
+                console.log("low/high", y(self.expectedRange[i][0]), y(self.expectedRange[i][1]));
+                return y(self.expectedRange[i][1]);
+            })
+            .attr("width", centerBox.width())
+            .attr("height", function (d, i) {
+                console.log("h", y(self.expectedRange[i][0]) - y(self.expectedRange[i][1]));
+                return y(self.expectedRange[i][0]) - y(self.expectedRange[i][1]);
+            });
 
+        //Autoheight
         if (this.autoHeight) {
-            this.svg.attr("height", this.smallMultipleHeight * (data.length + 1) + this.margin.top + this.margin.bottom);
+            this.svg.attr("height", (this.smallMultipleHeight + 2) * (data.length) + this.margin.top + this.margin.bottom);
         };
     };
 
