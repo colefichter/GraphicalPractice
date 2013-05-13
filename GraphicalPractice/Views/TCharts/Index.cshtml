@@ -32,9 +32,6 @@
 
     <h3>Blood Tests (Sparkline)</h3>
     <div id="sparkline"></div>
-    <p>TODO: plot most recent glucose reading with color matching dot; take color off labels?</p>
-
-
     <br clear="all" />
 </div>
 @section scripts {
@@ -89,12 +86,12 @@
             //Create a sparkline
             var s = (new Sparkline({
                 autoHeight: true,
-                margin: { 
+                /*margin: { 
                     top: 0,
                     right: 0,
                     bottom: 0,
                     left: 0
-                },
+                },*/
                 containerSelector: "#sparkline",                
                 datum: {
                     radius: 2,

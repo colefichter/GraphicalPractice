@@ -13,7 +13,7 @@ function Box(left, right) {
     this.parent = null;
 
     this.width = function () { return this.right - this.left; };
-    
+
     //this.createChild = function () {
     //    var b = new Box();
     //    b.parent = this;
@@ -26,15 +26,12 @@ function Box(left, right) {
 
 /* Base class for features common to all charts. */
 function TChartBase() {
-    //Enums
-    this.typeENum = {
-        QUARTILE: "quartile"
-    };
-
+    //Enums    
     this.orientationEnum = {
         HORIZONTAL: "horizontal",
         VERTICAL: "vertical"
     };
+
     //Default options
     this.autoHeight = true;
     this.backgroundColor = "#000000";
@@ -86,7 +83,6 @@ function TChartBase() {
             color: "#000000"
         }
     };
-
 
     this.data = function (data) {
         this._data = data;
@@ -166,7 +162,7 @@ function TChartBase() {
         var labels = container.selectAll("g.label").data(labelData);
         labels.enter().append("g")
             .attr("class", "label")
-            .attr("width", width)            
+            .attr("width", width)
             .attr("transform", translation);
 
         labels.append("text")
@@ -182,30 +178,24 @@ function TChartBase() {
 function QuartilePlot(options) {
     //Inherit from TCharts base.
     $.extend(this, new TChartBase());
-   
-    this.type = "quartile";
-    
+
     /* Apply options specified in constructor. First param, true, forces a deep copy!
         Deep copy allows us to easily override a subset of properties, eg:
             new TChart({ margin: { top: 50 } }) //does not affect other margin default values! */
     $.extend(true, this, options);
 
-    this.init = function () {
+    this._init = function () {
         this.svg = d3.select(this.containerSelector).append("svg")
             .attr("width", this.width /*+ margin.left + margin.right*/)
             .attr("height", this.height /*+ margin.top + margin.bottom*/);
     };
-    
+
     this.render = function () {
-        //switch (this.type) {
-        //    case this.typeENum.QUARTILE:
-                if (this._data[0] instanceof Array) {
-                    this._renderQuartilePlot(this._data);
-                } else {
-                    this._renderQuartilePlot([this._data]);
-                }
-        //        break;
-        //};
+        if (this._data[0] instanceof Array) {
+            this._renderQuartilePlot(this._data);
+        } else {
+            this._renderQuartilePlot([this._data]);
+        }
 
         return this;
     };
@@ -232,7 +222,7 @@ function QuartilePlot(options) {
         this._renderLabels(left,
             this._labels,
             labelWidth,
-            function (d, i) { return "translate(" + labelWidth + ", " + ((i +1) * self.smallMultipleHeight) + ")"; }
+            function (d, i) { return "translate(" + labelWidth + ", " + ((i + 1) * self.smallMultipleHeight) + ")"; }
         );
 
         //Setup the right-hand-side box (with the quartiles)
@@ -240,10 +230,10 @@ function QuartilePlot(options) {
             .attr("class", "right")
             //Shift the left edge over to the right of the labels (plus a margin)
             .attr("transform", "translate(" + (labelWidth + this.yAxis.labelMargin) + ", 0)");
-        
+
         //The scale range is from 0 (the left of of the RHS box) to the width (the right side) of the RHS box.        
         var scale = this.xAxis.scale.type() //e.g. d3.scale.linear evaluated as a callback
-           .domain([globalMin > 0 ? 0 : globalMin, globalMax])           
+           .domain([globalMin > 0 ? 0 : globalMin, globalMax])
            .range([0, box.right - box.left - labelWidth - this.yAxis.labelMargin]);
 
         var line = d3.svg.line()
@@ -253,14 +243,14 @@ function QuartilePlot(options) {
         var containers = right.selectAll("g").data(data);
 
         containers.enter().append("g")
-            .attr("transform", function (d, i) { return "translate(0, " + (/*box.top + */(i +1) * self.smallMultipleHeight) + ")"; });
+            .attr("transform", function (d, i) { return "translate(0, " + ((i + 1) * self.smallMultipleHeight) + ")"; });
 
         containers.append("circle") //Dots represent the median value of each quartile plot
             .attr("r", this.datum.radius)
             .attr("stroke", "none")
             .attr("fill", this.datum.fill)
             .attr("transform", function (d, i) {
-                return "translate(" + scale(d3.median(d)) + "," + -labelLineHeight +")";
+                return "translate(" + scale(d3.median(d)) + "," + -labelLineHeight + ")";
             });
         containers.append("text") //Label each dot
             .text(function (d) { return self.format(d3.median(d)); })
@@ -315,7 +305,7 @@ function QuartilePlot(options) {
         };
     };
 
-    this.init();
+    this._init();
 };
 
 function Sparkline(options) {
@@ -328,7 +318,7 @@ function Sparkline(options) {
            new TChart({ margin: { top: 50 } }) //does not affect other margin default values! */
     $.extend(true, this, options);
 
-    this.init = function () {
+    this._init = function () {
         this.svg = d3.select(this.containerSelector).append("svg")
             .attr("width", this.width /*+ margin.left + margin.right*/)
             .attr("height", this.height /*+ margin.top + margin.bottom*/);
@@ -349,100 +339,81 @@ function Sparkline(options) {
         var globalMin = this._global(data, d3.min);
         var globalMax = this._global(data, d3.max);
 
-        //var box = this._getBoundingBox();
         var box = new Box(this.margin.left, this.width - this.margin.right);
         box.top = this.margin.top;
         box.bottom = this.height - this.margin.bottom;
 
         var labelWidth = this._maxLabelWidth(this._labels);
-        
+
         //Create latest datapoint labels on right side...
         var dataLabels = data.map(function (d) { return self.format(d[d.length - 1], 2); });
         var dataLabelWidth = this._maxLabelWidth(dataLabels);
-        
-        console.log("dataLabelWidth", dataLabelWidth);
 
-        //This is a bit strange... but since we have the wrapper, which is already translated +15, left starts at zero.
-        //If the SVG width is 500, then we have
+        //console.log("dataLabelWidth", dataLabelWidth);
+
+        //This is a bit strange... but since we have the wrapper, which is already translated +15, left still starts at zero (even though it's +15, globally)
         var leftBox = new Box(0, labelWidth);
-        var rightBox = new Box(box.right - dataLabelWidth, box.right);        
+        var rightBox = new Box(box.right - dataLabelWidth, box.right);
         var centerBox = new Box(leftBox.right + this.yAxis.labelMargin, rightBox.left - this.yAxis.labelMargin);
-        
-        console.log("box", box);
-        console.log("leftBox", leftBox);
-        console.log("centerBox", centerBox);
-        console.log("rightBox", rightBox);
-        
+
+        //console.log("box", box);
+        //console.log("leftBox", leftBox);
+        //console.log("centerBox", centerBox);
+        //console.log("rightBox", rightBox);
+
         var wrapper = this.svg.append("g")
             .attr("class", "wrapper")
             .attr("transform", "translate(" + box.left + ", " + box.top + ")");
 
         var left = wrapper.append("svg:g")
             .attr("class", "left");
-            //.attr("transform", "translate(0,0)");
 
         //Text labels on the left side
-        this._renderLabels(left, this._labels, labelWidth, function (d, i) { return "translate(" + leftBox.right + ", " + (/*box.top +*/ (i +1) * self.smallMultipleHeight) + ")"; });
-        
+        this._renderLabels(left, this._labels, labelWidth, function (d, i) { return "translate(" + leftBox.right + ", " + ((i + 1) * self.smallMultipleHeight) + ")"; });
+
         //Setup SVG containers according to box model above
         var center = wrapper.append("svg:g")
-            .attr("class", "center")            
+            .attr("class", "center")
             .attr("transform", "translate(" + centerBox.left + ", 0)");
         var right = wrapper.append("svg:g")
             .attr("class", "right")
             .attr("transform", "translate(" + rightBox.left + ", 0)");
-        
-        //Data labels on the right
-        //var dataLabelContainers = right.selectAll("g").data(dataLabels);
-        //dataLabelContainers.enter().append("g")
-        //    .attr("class", "container")
-        //    .attr("transform", function (d, i) { return "translate(0, " + (/*box.top + */(i) * self.smallMultipleHeight) + ")"; });
 
-        //dataLabelContainers.append("text")
+        //Data labels on the right side     
         right.selectAll("text").data(dataLabels)
-            .enter().append("text")            
+            .enter().append("text")
                 .attr("x", -5)
                 .attr("fill", this.datum.fill)
-                .attr("y", function(d,i) { return (i + 1) * self.smallMultipleHeight; })
+                .attr("y", function (d, i) { return (i + 1) * self.smallMultipleHeight; })
                 .text(function (d) { return d; });
-        
+
         //Sparkline containers
         var containers = center.selectAll("g").data(data);
         containers.enter().append("g")
             .attr("class", "container")
-            .attr("transform", function (d, i) { return "translate(0, " + (/*box.top + */(i + 1) * self.smallMultipleHeight) + ")"; });
-        
-        //vertically center the sparkline...
-        var halfHeight = Math.round(this.smallMultipleHeight / 2);        
+            .attr("transform", function (d, i) { return "translate(0, " + ((i + 1) * self.smallMultipleHeight) + ")"; });
+
+        //vertically center the sparkline
+        var halfHeight = Math.round(this.smallMultipleHeight / 2);
         var y = d3.scale.linear().domain([globalMin, globalMax]).range([-halfHeight, halfHeight]);
-        
+
         //The scale range is from 0 (the left of of the center box) to the width (the right side) of the center box.
         var maxSubarrayLength = this._global(data.map(function (d, i) { return d.length; }), d3.max);
         var x = this.xAxis.scale.type() //e.g. d3.scale.linear evaluated as a callback
             .domain([0, maxSubarrayLength])
-            //.range([0, box.right - box.left - labelWidth - this.yAxis.labelMargin]);
             .range([0, centerBox.width()]);
 
-        // create a line object that represents the SVN line we're creating
-        var line = d3.svg.line()			
+        // create a line object that models the SVG line we're creating
+        var line = d3.svg.line()
 			.x(function (d, i) { return x(i); })
-			.y(function (d) { return y(d);});
+			.y(function (d) { return y(d); });
 
         //Draw the lines
         containers.append("path")
-            .attr("d", function (d) { /*console.log("D ", d);*/ return line(d); })
+            .attr("d", function (d) { return line(d); })
             .attr("stroke", this.datum.stroke)
             .attr("stroke-width", this.datum.strokeWidth)
-            .attr("fill", /*this.datum.fill*/"none");
-
-        //get the last data point in each subarray
-        var points = data.map(function (subarray, index) {
-            var len = subarray.length;
-            return {
-                x: len,
-                y: subarray[len - 1]
-            };
-        });
+            .attr("fill", "none");
 
         //Highlight final points
         //TODO: make this an option, so that we can highlight any point we like...(?)
@@ -450,14 +421,14 @@ function Sparkline(options) {
                 .attr("r", this.datum.radius)
                 .attr("stroke", "none")
                 .attr("fill", this.datum.fill)
-                .attr("transform", function (d, i) {                    
+                .attr("transform", function (d, i) {
                     return "translate(" + x(d.length - 1) + ", " + y(d[d.length - 1]) + ")";
                 });
-        
+
         if (this.autoHeight) {
             this.svg.attr("height", this.smallMultipleHeight * (data.length + 1) + this.margin.top + this.margin.bottom);
         };
     };
 
-    this.init();
+    this._init();
 };
