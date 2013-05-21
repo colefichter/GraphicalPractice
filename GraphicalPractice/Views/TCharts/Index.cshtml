@@ -19,7 +19,8 @@
     /*Override site style*/
     g.label {
         font-weight: normal;
-    }   
+    }
+   
 </style>
 <h2>TCharts Prototype</h2>
 <p>
@@ -32,6 +33,10 @@
 
     <h3>Blood Tests (Sparkline)</h3>
     <div id="sparkline"></div>
+    <br clear="all" />
+
+    <h3>Fuel Economy as a function of Horsepower (range frame)</h3>
+    <div id="rangeframe"></div>
     <br clear="all" />
 </div>
 @section scripts {
@@ -62,6 +67,9 @@
                 xAxis: {
                     grid: {
                         stroke: '#E2E2E2'
+                    },
+                    text: {
+                        color: "red"
                     }
                 }
             })).data(chartData).labels(labels).render();
@@ -83,7 +91,7 @@
             sparklineData[2].pop();
             sparklineData[2].pop();
 
-            console.log(sparklineData);
+            //console.log(sparklineData);
 
             //Create a sparkline
             var s = (new Sparkline({
@@ -110,6 +118,33 @@
                     [5, 9]
                 ]
             })).data(sparklineData).labels(fakeLabels).render();
+
+
+
+
+
+            
+            var econByHorsepower = data.map(function (x) {
+                return {
+                    x: parseFloat(x.hp),
+                    y: parseFloat(x.mpg)
+                }; 
+            });
+            
+            //Create a range frame
+            (new RangeFrame({
+                containerSelector: "#rangeframe",
+                datum: {
+                    radius: 2,
+                    stroke: "steelblue",
+                    fill: "steelblue", //"#E1B770"
+                },
+                yAxis: {
+                    text: {
+                        color: "red"
+                    }
+                }
+            })).data(econByHorsepower).render();
         });
     </script>
 }
