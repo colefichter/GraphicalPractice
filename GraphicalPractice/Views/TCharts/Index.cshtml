@@ -67,10 +67,10 @@
                 xAxis: {
                     grid: {
                         stroke: '#E2E2E2'
-                    },
+                    }/*,
                     text: {
                         color: "red"
-                    }
+                    }*/
                 }
             })).data(chartData).labels(labels).render();
 
@@ -120,11 +120,8 @@
             })).data(sparklineData).labels(fakeLabels).render();
 
 
-
-
-
-            
-            var econByHorsepower = data.map(function (x) {
+                        
+            var mpgByHp = data.map(function (x) {
                 return {
                     x: parseFloat(x.hp),
                     y: parseFloat(x.mpg)
@@ -144,7 +141,7 @@
                         color: "red"
                     }
                 }
-            })).data(econByHorsepower).render();
+            })).data(mpgByHp).render();
         });
     </script>
 }
