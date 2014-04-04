@@ -7,22 +7,24 @@ if (typeof Object.create !== 'function') {
     };
 }
 
-function Box(left, right) {
+function Box(left, right, top, bottom) {
     this.left = left ? left : 0,
     this.right = right ? right : 0,
+    this.top = top ? top : 0,
+    this.bottom = bottom ? bottom : 0,
     this.parent = null;
 
-    this.width = function () { return this.right - this.left; };
+    this.width = function() { return this.right - this.left; };
+    this.height = function () { return this.bottom - this.top; };
 
-    //this.createChild = function () {
-    //    var b = new Box();
-    //    b.parent = this;
-    //    b.left = 0;
-    //    b.right = this.width;
-    //    return b;
-    //};
+    this.translation = function () { return "translate(" + (this.left) + "," + (this.top) + ")"; };
+
+    ///Create new boxes, adjacent to this one...
+    this.north = function (height) { return new Box(this.left, this.right, this.top - height, this.top); };
+    this.south = function (height) { return new Box(this.left, this.right, this.bottom, this.bottom + height); };
+    this.east = function (width) { return new Box(this.right, this.right + width, this.top, this.bottom); };
+    this.west = function (width) { return new Box(this.left - width, this.left, this.top, this.bottom); };
 };
-
 
 /* Base class for features common to all charts. */
 function TChartBase() {
@@ -71,9 +73,12 @@ function TChartBase() {
         scale: {
             type: d3.scale.linear //should always be one of the d3.scale functions (used as a callback to create the scale, when needed)
         },
+        stroke: "#000000",
+        strokeWidth: 1,
         text: {
             anchor: "middle",
-            fontSize: "75%"
+            fontSize: "75%",
+            color: "#000000"
         },
         tick: 10
     };
@@ -83,7 +88,12 @@ function TChartBase() {
             anchor: "end",
             fontSize: "100%",
             color: "#000000"
-        }
+        },
+        scale: {
+            type: d3.scale.linear //should always be one of the d3.scale functions (used as a callback to create the scale, when needed)
+        },
+        stroke: "#000000",
+        strokeWidth: 1
     };
 
     this.data = function (data) {
@@ -114,12 +124,13 @@ function TChartBase() {
     };
 
     this._getBoundingBox = function () {
-        return {
-            left: this.margin.left,
-            top: this.margin.top,
-            right: this.width - this.margin.right,
-            bottom: this.height - this.margin.bottom
-        };
+        //return {
+        //    left: this.margin.left,
+        //    top: this.margin.top,
+        //    right: this.width - this.margin.right,
+        //    bottom: this.height - this.margin.bottom
+        //};
+        return new Box(this.margin.left, this.width - this.margin.right, this.margin.top, this.height - this.margin.bottom);
     };
 
     /* Generates a function that represents a scaled p-quantile of the data bound to a selection. When the callback created here is invoked
@@ -279,7 +290,7 @@ function QuartilePlot(options) {
             .attr("stroke-width", this.datum.strokeWidth)
             .attr('fill', this.datum.fill);
 
-        /* xAxis*/
+        /* xAxis */
         var axisOffset = 10 /*+ box.top*/ + data.length * (self.smallMultipleHeight);
         var rules = right.selectAll("g.rule").data(scale.ticks(this.xAxis.tick))
           .enter().append("svg:g")
@@ -298,6 +309,7 @@ function QuartilePlot(options) {
         rules.append("svg:text") //axis text
             .attr("y", axisOffset + this.smallMultipleHeight)
             .attr("x", 0)
+            .attr("fill", this.xAxis.text.color)
             .attr("text-anchor", this.xAxis.text.anchor)
             .text(scale.tickFormat(this.xAxis.tick));
         //end of xAxis
@@ -439,12 +451,12 @@ function Sparkline(options) {
             .attr("fill", this.datum.secondaryFill)
             .attr("x", 0)
             .attr("y", function (d, i) {
-                console.log("low/high", y(self.expectedRange[i][0]), y(self.expectedRange[i][1]));
+                //console.log("low/high", y(self.expectedRange[i][0]), y(self.expectedRange[i][1]));
                 return y(self.expectedRange[i][1]);
             })
             .attr("width", centerBox.width())
             .attr("height", function (d, i) {
-                console.log("h", y(self.expectedRange[i][0]) - y(self.expectedRange[i][1]));
+                //console.log("h", y(self.expectedRange[i][0]) - y(self.expectedRange[i][1]));
                 return y(self.expectedRange[i][0]) - y(self.expectedRange[i][1]);
             });
 
@@ -452,6 +464,148 @@ function Sparkline(options) {
         if (this.autoHeight) {
             this.svg.attr("height", (this.smallMultipleHeight + 2) * (data.length) + this.margin.top + this.margin.bottom);
         };
+    };
+
+    this._init();
+};
+
+
+
+function RangeFrame(options) {
+    $.extend(this, new TChartBase());
+
+    //Override defaults here...
+    this.expectedRange = [];
+
+    /* Apply options specified in constructor. First param, true, forces a deep copy!
+       Deep copy allows us to easily override a subset of properties, eg:
+           new TChart({ margin: { top: 50 } }) //does not affect other margin default values! */
+    $.extend(true, this, options);
+
+    this._init = function () {
+        this.svg = d3.select(this.containerSelector).append("svg")
+            .attr("width", this.width /*+ margin.left + margin.right*/)
+            .attr("height", this.height /*+ margin.top + margin.bottom*/);
+    };
+
+    this.render = function () {
+        //if (this._data[0] instanceof Array) {
+        //    this._renderRangeFrame(this._data);
+        //} else {
+        //    this._renderRangeFrame([this._data]);
+        //}
+        this._renderRangeFrame(this._data);
+
+        return this;
+    };
+
+    this._renderRangeFrame = function (data) {
+        var self = this;
+        var globalMin = this._global(data, d3.min);
+        var globalMax = this._global(data, d3.max);
+
+        //var box = new Box(this.margin.left, this.width - this.margin.right, this.margin.top, this.height - this.margin.bottom);
+        var box = this._getBoundingBox();
+
+        var labelLineHeight = this._measure("Not a real label!").height;
+        var numberOfTicks = 5; //TODO: figure out how to calculate this dynamically
+
+        var xMin = d3.min(data, function (d) { return d.x; });
+        var xMax = d3.max(data, function (d) { return d.x; });
+        var yMin = d3.min(data, function (d) { return d.y; });
+        var yMax = d3.max(data, function (d) { return d.y; });
+
+        var xScale = this.xAxis.scale.type()
+            .domain([xMin, xMax]); //We set range below...            
+        var yScale = this.yAxis.scale.type()
+            .domain([yMin, yMax]); //We set range below...
+                        
+        //Container to force margins
+        var wrapper = this.svg.append("g")
+            .attr("class", "wrapper")
+            .attr("transform", "translate(" + box.left + ", " + box.top + ")");
+
+        //Width of labels on yAxis (vertical)
+        var labels = yScale.ticks(numberOfTicks);
+        var labelWidth = this._maxLabelWidth(labels);
+
+        var xAxisHeight = labelLineHeight;
+        
+        var leftBox = new Box(0, labelWidth, 0, box.bottom - xAxisHeight);
+        var centerBox = leftBox.east(box.width() - leftBox.width());
+        var bottomBox = centerBox.south(labelLineHeight); //?
+
+        /*console.log(box.width());
+        console.log("leftBox", leftBox);
+        console.log("centerBox", centerBox);
+        console.log("bottomBox", bottomBox);*/
+
+        xScale.range([0, centerBox.width()]);
+        yScale.range([centerBox.height(), 0]);
+
+
+        //TODO: rename LEFT/RIGHT/CENTER/BOTTOM classes to NORTH/SOUTH/EAST/WEST/CENTER
+
+
+        //Container for yAxis
+        var left = wrapper.append("svg:g")
+            .attr("class", "left");
+        this._renderLabels(left, labels, labelWidth,
+            function (d, i) { return "translate(" + labelWidth + ", " + (yScale(d)) + ")"; }
+        ).attr("fill", this.yAxis.text.color);
+        //Draw the Y-Axis
+        left.append("svg:line")
+            .attr("y1", yScale(yMin))
+            .attr("y2", yScale(yMax))
+            .attr("x1", leftBox.right)
+            .attr("x2", leftBox.right)
+            .style("stroke", this.yAxis.stroke)
+            .attr("stroke-width", this.yAxis.strokeWidth);
+                
+
+        
+        
+        //Container for xAxis
+        var bottom = wrapper.append("svg:g")
+            .attr("class", "bottom")
+            .attr("transform", bottomBox.translation());
+
+        //Container for data
+        var center = wrapper.append("svg:g")
+            .attr("class", "center")
+            .attr("transform", centerBox.translation());
+
+        center.selectAll("circle")
+            .data(this._data)
+            .enter().append("circle")
+                .attr("r", this.datum.radius)
+                .attr("stroke", "none")
+                .attr("fill", this.datum.fill)
+                .attr("transform", function (d, i) {
+                    return "translate(" + xScale(d.x) + ", " + yScale(d.y) + ")";
+                });
+
+
+        /* xAxis */
+        //var xContainer = wrapper.append("g")
+        //    .attr("transform", function (d) { return "translate("; });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
     };
 
     this._init();
