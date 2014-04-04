@@ -172,7 +172,69 @@ module("Box");
 test("width()", function () {
     var b = new Box(50, 150);
 
-    ok(b.left == 50);
-    ok(b.right == 150);
-    ok(b.width() == 100);
+    ok(b.left == 50, ".left");
+    ok(b.right == 150, ".right");
+    ok(b.width() == 100, ".width()");
+});
+
+test("height()", function () {
+    var b = new Box(50, 150, 100, 200);
+
+    ok(b.top == 100, ".top");
+    ok(b.bottom == 200, ".bottom");
+    ok(b.height() == 100, ".height()");
+});
+
+test("north()", function () {
+    var b = new Box(10, 90, 10, 100);
+    var c = b.north(8);
+
+    ok(c.left == b.left, ".left");
+    ok(c.right == b.right, ".right");
+    ok(c.top == 2, ".top");
+    ok(c.bottom == b.top, ".bottom");
+
+    ok(c.width() == 80, ".width()");
+    ok(c.height() == 8, ".height()");
+});
+
+test("south()", function () {
+    var b = new Box(10, 90, 10, 100);
+    var c = b.south(50);
+
+    ok(c.left == b.left, ".left");
+    ok(c.right == b.right, ".right");
+    ok(c.top == b.bottom, ".top");
+    ok(c.bottom == 150, ".bottom");
+
+    console.log(c, c.height());
+
+    ok(c.width() == 80, ".width()");
+    ok(c.height() == 50, ".height()");
+});
+
+test("east()", function () {
+    var b = new Box(10, 90, 10, 100);
+    var c = b.east(10);
+
+    ok(c.left == 90, ".left");
+    ok(c.right == 100, ".right");
+    ok(c.top == b.top, ".top");
+    ok(c.bottom == b.bottom, ".bottom");
+
+    ok(c.width() == 10, ".width()");
+    ok(c.height() == b.height(), ".height()");
+});
+
+test("west()", function () {
+    var b = new Box(10, 90, 10, 100);
+    var c = b.west(6);
+
+    ok(c.left == 4, ".left");
+    ok(c.right == 10, ".right");
+    ok(c.top == b.top, ".top");
+    ok(c.bottom == b.bottom, ".bottom");
+
+    ok(c.width() == 6, ".width()");
+    ok(c.height() == b.height(), ".height()");
 });
